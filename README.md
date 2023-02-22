@@ -4,6 +4,11 @@ Tujuan untuk mengupload file ke supabase storage via golang dengan bantuan API d
 
 # Cara Penggunaan
 
+Download ekstensi
+```
+go get github.com/adityarizkyramadhan/supabase-storage-uploader
+```
+
 ```go
 package main
 
@@ -15,6 +20,7 @@ import (
 )
 
 func main() {
+
 	r := gin.Default()
 
 	r.POST("/upload", func(c *gin.Context) {
