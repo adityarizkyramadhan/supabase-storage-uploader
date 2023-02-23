@@ -12,7 +12,7 @@ go get github.com/adityarizkyramadhan/supabase-storage-uploader
 # Peraturan
 
 - Maksimal file upload sebesar 3 * 1024 * 1024 byte
-- Server API bersifat serverless sehingga harap maklum jika down atau lemot
+- Server API bersifat serverless sehingga harap maklum jika down atau lamban
 
 # Update New Version
 
