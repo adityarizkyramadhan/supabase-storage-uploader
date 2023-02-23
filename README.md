@@ -9,7 +9,7 @@ Download ekstensi
 go get github.com/adityarizkyramadhan/supabase-storage-uploader
 ```
 
-#Update
+# Update New Version
 
 Untuk membuat code yang lebih muda dibaca agar dapat dipergunakan lebih simple
 
