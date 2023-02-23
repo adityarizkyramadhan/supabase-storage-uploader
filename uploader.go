@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 )
 
+// Deprecated: Fungsi kurang efesien
 func Upload(host, token, storageName, storagePath string, fileHeader *multipart.FileHeader) (string, error) {
 
 	url := "https://express-uploader-two.vercel.app/upload"
@@ -58,7 +58,7 @@ func Upload(host, token, storageName, storagePath string, fileHeader *multipart.
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return "", err
