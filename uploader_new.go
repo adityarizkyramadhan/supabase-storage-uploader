@@ -4,18 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 )
 
 var (
-	errFileNotFound = errors.New("fileHeader is null")
+	errFileNotFound     = errors.New("fileHeader is null")
+	errFileNotInStorage = errors.New("file not found, check your storage name, file path, and file name")
 )
 
 const (
-	url    = "https://express-uploader-two.vercel.app/upload"
-	method = "POST"
+	urlPost   = "https://express-uploader-two.vercel.app/upload"
+	urlDelete = "https://express-uploader-two.vercel.app/file"
+	post      = "POST"
+	delete    = "DELETE"
 )
 
 type (
@@ -27,6 +32,13 @@ type (
 	}
 	SupabaseClientService interface {
 		Upload(fileHeader *multipart.FileHeader) (string, error)
+		DeleteFile(link string) (interface{}, error)
+	}
+	payload struct {
+		Host        string `json:"host"`
+		Token       string `json:"token"`
+		StorageName string `json:"storage_name"`
+		Link        string `json:"link"`
 	}
 )
 
@@ -75,7 +87,7 @@ func (sc *supabaseClient) Upload(fileHeader *multipart.FileHeader) (string, erro
 		return "", err
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest(method, url, payload)
+	req, err := http.NewRequest(post, urlPost, payload)
 
 	if err != nil {
 		return "", err
@@ -101,4 +113,51 @@ func (sc *supabaseClient) Upload(fileHeader *multipart.FileHeader) (string, erro
 
 	return response["data"].(string), nil
 
+}
+
+func (sc *supabaseClient) DeleteFile(link string) (interface{}, error) {
+	payloadRequest := payload{
+		Host:        sc.ProjectUrl,
+		StorageName: sc.ProjectStorageName,
+		Token:       sc.ProjectApiKeys,
+		Link:        link,
+	}
+	requestBody, err := json.Marshal(&payloadRequest)
+	if err != nil {
+		fmt.Println("marshal json")
+		return nil, err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest(delete, urlDelete, bytes.NewBuffer(requestBody))
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	fmt.Println(string(body))
+	response := make(map[string]interface{})
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+	if len(response["data"].([]interface{})) == 0 {
+		return nil, errFileNotInStorage
+	}
+	return response["data"], nil
 }

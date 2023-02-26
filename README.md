@@ -13,10 +13,14 @@ go get github.com/adityarizkyramadhan/supabase-storage-uploader
 
 - Maksimal file upload sebesar 3 * 1024 * 1024 byte
 - Server API bersifat serverless sehingga harap maklum jika down atau lamban
+- Jika merasa repo ini ada kekurangan bisa contact saya atau bikin issues
+- Jika merasa repo ini berguna, bisa bantu star :) arigatouuu :)
 
 # Update New Version
 
-Untuk membuat code yang lebih muda dibaca agar dapat dipergunakan lebih simple
+- v0.0.1 => Add upload file
+- v0.0.2 => Untuk membuat code yang lebih muda dibaca agar dapat dipergunakan lebih simple
+- v0.0.3 => Add delete file
 
 
 ```go
@@ -52,6 +56,22 @@ func main() {
 			return
 		}
 		c.JSON(200, gin.H{"data": link})
+	})
+
+
+	// Updates add delete file
+	r.DELETE("file", func(c *gin.Context) {
+		linkFile := c.Request.FormValue("linkfile")
+
+		fmt.Println(linkFile)
+
+		data, err := supClient.DeleteFile(linkFile)
+
+		if err != nil {
+			c.JSON(500, gin.H{"data": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"data": data})
 	})
 
 	r.Run(":8080")
