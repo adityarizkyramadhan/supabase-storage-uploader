@@ -111,8 +111,40 @@ func (sc *supabaseClient) Upload(fileHeader *multipart.FileHeader) (string, erro
 		return "", err
 	}
 
+	err = sc.checkLink(response["data"].(string))
+	if err != nil {
+		return "", err
+	}
+
 	return response["data"].(string), nil
 
+}
+
+func (sc *supabaseClient) checkLink(link string) error {
+	// Create an HTTP client
+	client := &http.Client{}
+	// Create a new HTTP GET request
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return err
+	}
+
+	// Perform the request via the client
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Request failed with status code:", resp.StatusCode)
+		return fmt.Errorf("file not found, check your storage name, file path, file name, and policy")
+	}
+
+	return nil
 }
 
 func (sc *supabaseClient) DeleteFile(link string) (interface{}, error) {
@@ -159,5 +191,6 @@ func (sc *supabaseClient) DeleteFile(link string) (interface{}, error) {
 	if len(response["data"].([]interface{})) == 0 {
 		return nil, errFileNotInStorage
 	}
+
 	return response["data"], nil
 }
