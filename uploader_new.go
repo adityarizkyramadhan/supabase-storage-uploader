@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 )
@@ -14,6 +13,7 @@ import (
 var (
 	errFileNotFound     = errors.New("fileHeader is null")
 	errFileNotInStorage = errors.New("file not found, check your storage name, file path, and file name")
+	errLinkNotFound     = errors.New("file not found, check your storage name, file path, file name, and policy")
 )
 
 const (
@@ -126,22 +126,19 @@ func (sc *supabaseClient) checkLink(link string) error {
 	// Create a new HTTP GET request
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		fmt.Println("Error creating request:", err)
 		return err
 	}
 
 	// Perform the request via the client
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Error sending request:", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Request failed with status code:", resp.StatusCode)
-		return fmt.Errorf("file not found, check your storage name, file path, file name, and policy")
+		return errLinkNotFound
 	}
 
 	return nil
@@ -175,7 +172,7 @@ func (sc *supabaseClient) DeleteFile(link string) (interface{}, error) {
 	}
 	defer res.Body.Close()
 
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
