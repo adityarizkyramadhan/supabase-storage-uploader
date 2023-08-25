@@ -124,7 +124,7 @@ func (sc *supabaseClient) checkLink(link string) error {
 	// Create an HTTP client
 	client := &http.Client{}
 	// Create a new HTTP GET request
-	req, err := http.NewRequest("GET", link, nil)
+	req, err := http.NewRequest(http.MethodGet, link, nil)
 	if err != nil {
 		return err
 	}
