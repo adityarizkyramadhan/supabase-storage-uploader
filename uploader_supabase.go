@@ -75,7 +75,12 @@ func (c *Client) Upload(fileHeader *multipart.FileHeader) (string, error) {
 		log.Printf("%v %v \n", color.RedString("Error sending request:"), err)
 		return "", err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("%v %v \n", color.RedString("Error closing response body:"), err)
+		}
+	}(response.Body)
 	if response.StatusCode != http.StatusOK {
 		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
 		return "", ErrBadRequest
@@ -139,7 +144,13 @@ func (c *Client) ListBucket(requestBody *RequestBodyListBucket) (*ResponseListBu
 		log.Printf("%v %v \n", color.RedString("Error sending request:"), err)
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("%v %v \n", color.RedString("Error closing response body:"), err)
+		}
+	}(response.Body)
+
 	if response.StatusCode != http.StatusOK {
 		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
 		return nil, err
