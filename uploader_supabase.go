@@ -8,6 +8,8 @@ import (
 	"mime/multipart"
 	"net/http"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 type Client struct {
@@ -35,47 +37,47 @@ func New(
 
 func (c *Client) Upload(fileHeader *multipart.FileHeader) (string, error) {
 	if fileHeader == nil {
-		log.Println("Error reading file:", ErrFileNotFound)
+		log.Printf("%v %v \n", color.RedString("Error reading file header:"), ErrFileNotFound)
 		return "", ErrFileNotFound
 	}
 	file, err := fileHeader.Open()
 	if err != nil {
-		log.Println("Error opening file:", err)
+		log.Printf("%v %v \n", color.RedString("Error opening file:"), err)
 		return "", err
 	}
 	var requestBody bytes.Buffer
 	multipartWriter := multipart.NewWriter(&requestBody)
 	fileWriter, err := multipartWriter.CreateFormFile("file", fileHeader.Filename)
 	if err != nil {
-		log.Println("Error creating form file:", err)
+		log.Printf("%v %v \n", color.RedString("Error creating form file:"), err)
 		return "", err
 	}
 	_, err = io.Copy(fileWriter, file)
 	if err != nil {
-		log.Println("Error copying file to form:", err)
+		log.Printf("%v %v \n", color.RedString("Error copying file:"), err)
 		return "", err
 	}
 	err = multipartWriter.Close()
 	if err != nil {
-		log.Println("Error closing multipart writer:", err)
+		log.Printf("%v %v \n", color.RedString("Error closing multipart writer:"), err)
 		return "", err
 	}
 	url := c.urlProject + "/storage/v1/object/" + c.bucketName + "/" + fileHeader.Filename
 	request, err := http.NewRequest(http.MethodPost, url, &requestBody)
 	if err != nil {
-		log.Println("Error creating request:", err)
+		log.Printf("%v %v \n", color.RedString("Error creating request:"), err)
 		return "", err
 	}
 	request.Header.Set("Authorization", "Bearer "+c.token)
 	request.Header.Set("Content-Type", multipartWriter.FormDataContentType())
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		log.Println("Error sending request:", err)
+		log.Printf("%v %v \n", color.RedString("Error sending request:"), err)
 		return "", err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		log.Println("Received non-200 response:", response.StatusCode)
+		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
 		return "", ErrBadRequest
 	}
 	return c.linkFile(fileHeader.Filename), nil
@@ -114,15 +116,19 @@ type ResponseListBucket []struct {
 }
 
 func (c *Client) ListBucket(requestBody *RequestBodyListBucket) (*ResponseListBucket, error) {
+	if requestBody == nil {
+		log.Printf("%v %v \n", color.RedString("Error reading request body:"), ErrFileNotFound)
+		return nil, ErrFileNotFound
+	}
 	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Println("Error marshaling JSON:", err)
+		log.Printf("%v %v \n", color.RedString("Error marshalling request body:"), err)
 		return nil, err
 	}
 	url := c.urlProject + "/storage/v1/object/list/" + c.bucketName
 	request, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		log.Println("Error creating request:", err)
+		log.Printf("%v %v \n", color.RedString("Error creating request:"), err)
 		return nil, err
 	}
 	request.Header.Set("Authorization", "Bearer "+c.token)
@@ -130,18 +136,18 @@ func (c *Client) ListBucket(requestBody *RequestBodyListBucket) (*ResponseListBu
 
 	response, err := c.httpClient.Do(request)
 	if err != nil {
-		log.Println("Error sending request:", err)
+		log.Printf("%v %v \n", color.RedString("Error sending request:"), err)
 		return nil, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		log.Println("Received non-200 response:", response.StatusCode)
+		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
 		return nil, err
 	}
 	var responseBody ResponseListBucket
 	err = json.NewDecoder(response.Body).Decode(&responseBody)
 	if err != nil {
-		log.Println("Error decoding response:", err)
+		log.Printf("%v %v \n", color.RedString("Error decoding response body:"), err)
 		return nil, err
 	}
 	return &responseBody, nil
