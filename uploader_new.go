@@ -51,7 +51,7 @@ func NewSupabaseClient(
 
 func (sc *supabaseClient) Upload(fileHeader *multipart.FileHeader) (string, error) {
 	if fileHeader == nil {
-		return "", errFileNotFound
+		return "", ErrFileNotFound
 	}
 
 	file, err := fileHeader.Open()
@@ -131,7 +131,7 @@ func (sc *supabaseClient) checkLink(link string) error {
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
-		return errLinkNotFound
+		return ErrLinkNotFound
 	}
 
 	return nil
@@ -179,7 +179,7 @@ func (sc *supabaseClient) DeleteFile(link string) (interface{}, error) {
 		return "", err
 	}
 	if len(response["data"].([]interface{})) == 0 {
-		return nil, errFileNotInStorage
+		return nil, ErrFileNotInStorage
 	}
 
 	return response["data"], nil
