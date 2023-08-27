@@ -11,37 +11,36 @@ go get github.com/adityarizkyramadhan/supabase-storage-uploader
 
 # Peraturan
 
-- Maksimal file upload sebesar 3 * 1024 * 1024 byte
-- Server API bersifat serverless sehingga harap maklum jika down atau lamban
-- Jika merasa repo ini ada kekurangan bisa contact saya atau bikin issues
-- Jika merasa repo ini berguna, bisa bantu star :) arigatouuu :)
+- Jika ingin menggunakan package ini, pastikan anda sudah membuat bucket di supabase storage
+- Jika ada kesalahan atau bug bisa menghubungi saya atau bikin issues pada repository ini
+- Jika ingin berkontribusi silahkan fork repository ini dan buat pull request
 
 # Update New Version
-
 - v0.0.1 => Add upload file
 - v0.0.2 => Untuk membuat code yang lebih muda dibaca agar dapat dipergunakan lebih simple
 - v0.0.3 => Add delete file
+### Versi Terbaru
+- v1.0.0 => Menggunakan API official dari supabase, menambahkan list bucket, dan mengubah struktur code
 
 
 ```go
 package main
 
 import (
-	"os"
-
 	supabasestorageuploader "github.com/adityarizkyramadhan/supabase-storage-uploader"
+	"github.com/fatih/color"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func main() {
 	r := gin.Default()
 
 	// Buat Client
-	supClient := supabasestorageuploader.NewSupabaseClient(
-		"PROJECT_URL",
-		"PROJECT_API_KEYS",
-		"STORAGE_NAME",
-		"STORAGE_FOLDER",
+	supClient := supabasestorageuploader.New(
+		"https://your-unique-url.supabase.co",
+		"your-token",
+		"your-bucket-name",
 	)
 
 	r.POST("/upload/v2", func(c *gin.Context) {
@@ -58,25 +57,48 @@ func main() {
 		c.JSON(200, gin.H{"data": link})
 	})
 
-
-	// Updates add delete file
-	r.DELETE("file", func(c *gin.Context) {
-		linkFile := c.Request.FormValue("linkfile")
-
-		fmt.Println(linkFile)
-
-		data, err := supClient.DeleteFile(linkFile)
-
+	r.GET("/list", func(c *gin.Context) {
+		list, err := supClient.ListBucket(
+			&supabasestorageuploader.RequestBodyListBucket{
+				Limit:  10,
+				Offset: 0,
+				SortBy: struct {
+					Column string `json:"column"`
+					Order  string `json:"order"`
+				}{
+					Column: "name",
+					Order:  "asc",
+				},
+			},
+		)
 		if err != nil {
 			c.JSON(500, gin.H{"data": err.Error()})
 			return
 		}
-		c.JSON(200, gin.H{"data": data})
+		c.JSON(200, gin.H{"data": list})
 	})
 
-	r.Run(":8080")
+	r.DELETE("/delete", func(c *gin.Context) {
+		// get body from request
+		var requestBody map[string]string
+		err := c.BindJSON(&requestBody)
+		if err != nil {
+			c.JSON(400, gin.H{"data": err.Error()})
+			return
+		}
+		err = supClient.Delete(requestBody["link"])
+		if err != nil {
+			c.JSON(500, gin.H{"data": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"data": "success"})
+	})
+	log.Printf("Server running at %v\n", color.GreenString("http://localhost:8080"))
+	err := r.Run(":8080")
+	if err != nil {
+		return
+	}
 }
-
 ```
 
 
