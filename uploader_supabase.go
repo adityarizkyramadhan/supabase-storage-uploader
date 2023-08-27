@@ -7,6 +7,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -162,4 +163,34 @@ func (c *Client) ListBucket(requestBody *RequestBodyListBucket) (*ResponseListBu
 		return nil, err
 	}
 	return &responseBody, nil
+}
+
+func (c *Client) extractFilename(link string) string {
+	return strings.ReplaceAll(link, c.fileUrl, "")
+}
+
+func (c *Client) Delete(link string) error {
+	fileName := c.extractFilename(link)
+	url := c.urlProject + "/storage/v1/object/" + c.bucketName + "/" + fileName
+	request, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		log.Printf("%v %v \n", color.RedString("Error creating request:"), err)
+		return err
+	}
+	request.Header.Set("Authorization", "Bearer "+c.token)
+	response, err := c.httpClient.Do(request)
+	if err != nil {
+		log.Fatalf("%v %v \n", color.RedString("Error sending request:"), err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Printf("%v %v \n", color.RedString("Error closing response body:"), err)
+		}
+	}(response.Body)
+	if response.StatusCode != http.StatusOK {
+		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
+		return ErrBadRequest
+	}
+	return nil
 }
