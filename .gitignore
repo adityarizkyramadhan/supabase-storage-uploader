@@ -1,1 +1,7 @@
 .env
+.idea
+.vscode
+*.exe
+*.dll
+*.pdb
+*.bat
