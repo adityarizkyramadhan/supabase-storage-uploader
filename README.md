@@ -14,6 +14,8 @@ go get github.com/adityarizkyramadhan/supabase-storage-uploader
 - Jika ingin menggunakan package ini, pastikan anda sudah membuat bucket di supabase storage
 - Jika ada kesalahan atau bug bisa menghubungi saya atau bikin issues pada repository ini
 - Jika ingin berkontribusi silahkan fork repository ini dan buat pull request
+- Pastikan bucket anda sudah mengupdate policy untuk bisa create, read, update, dan delete file
+- Menggunakan API resmi dari supabase
 
 # Update New Version
 - v0.0.1 => Add upload file
