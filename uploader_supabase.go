@@ -86,7 +86,21 @@ func (c *Client) Upload(fileHeader *multipart.FileHeader) (string, error) {
 		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), response.StatusCode)
 		return "", ErrBadRequest
 	}
-	return c.linkFile(fileHeader.Filename), nil
+	link := c.linkFile(fileHeader.Filename)
+	reqImage, err := http.NewRequest(http.MethodGet, link, nil)
+	if err != nil {
+		log.Printf("%v %v \n", color.RedString("Error creating request:"), err)
+		return "", err
+	}
+	resImage, err := c.httpClient.Do(reqImage)
+	if err != nil {
+		return "", err
+	}
+	if resImage.StatusCode != http.StatusOK {
+		log.Printf("%v %v \n", color.RedString("Received non-200 response:"), resImage.StatusCode)
+		return "", ErrBadRequest
+	}
+	return link, nil
 }
 
 func (c *Client) linkFile(filename string) string {
