@@ -9,6 +9,10 @@ Download ekstensi
 go get github.com/adityarizkyramadhan/supabase-storage-uploader
 ```
 
+# Dokumentasi
+
+https://pkg.go.dev/github.com/adityarizkyramadhan/supabase-storage-uploader
+
 # Peraturan
 
 - Jika ingin menggunakan package ini, pastikan anda sudah membuat bucket di supabase storage
