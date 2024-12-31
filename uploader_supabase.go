@@ -103,6 +103,28 @@ func (c *Client) Upload(fileHeader *multipart.FileHeader) (string, error) {
 	return link, nil
 }
 
+func (c *Client) AsyncUploadWithWaiting(fileHeader *multipart.FileHeader, ch chan string) {
+	go func() {
+		link, err := c.Upload(fileHeader)
+		if err != nil {
+			log.Printf("%v %v \n", color.RedString("Error uploading file:"), err)
+			ch <- ""
+		}
+		ch <- link
+	}()
+}
+
+func (c *Client) AsyncUploadWithoutWaiting(fileHeader *multipart.FileHeader) {
+	go func() {
+		link, err := c.Upload(fileHeader)
+		if err != nil {
+			log.Printf("Error uploading file: %v\n", err)
+			return
+		}
+		log.Printf("File uploaded successfully: %s\n", link)
+	}()
+}
+
 func (c *Client) linkFile(filename string) string {
 	return c.fileUrl + filename
 }
